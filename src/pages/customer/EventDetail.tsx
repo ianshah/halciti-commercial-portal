@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { CustomerNav } from "@/components/CustomerNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,6 +32,7 @@ const schedule = [
 
 export default function EventDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,7 +41,7 @@ export default function EventDetail() {
       <main className="container py-8">
         <div className="flex justify-between items-start mb-8">
           <h1 className="text-4xl font-bold">Halal Awareness Training</h1>
-          <Button size="lg">Buy Tickets</Button>
+          <Button size="lg" onClick={() => navigate(`/event/${id}/buy-tickets`)}>Buy Tickets</Button>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -54,7 +55,6 @@ export default function EventDetail() {
                 />
               </CardContent>
             </Card>
-
             <section>
               <h2 className="text-2xl font-bold mb-4">Event Details</h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -176,7 +176,7 @@ export default function EventDetail() {
                   </ul>
                 </div>
 
-                <Button className="w-full mt-6" size="lg">Register Now</Button>
+                <Button className="w-full mt-6" size="lg" onClick={() => navigate(`/event/${id}/buy-tickets`)}>Register Now</Button>
               </CardContent>
             </Card>
           </div>
