@@ -83,12 +83,13 @@ export default function BuyTickets() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
-      toast({
-        title: "Tickets reserved!",
-        description: `${quantity} ticket(s) reserved. Check your email for confirmation.`,
+      navigate(`/event/${id}/confirmation`, {
+        state: {
+          ...data,
+          quantity,
+          totalPrice,
+        },
       });
-      
-      setTimeout(() => navigate(`/event/${id}`), 2000);
     } catch (error) {
       toast({
         title: "Error",
