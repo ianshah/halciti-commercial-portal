@@ -9,6 +9,7 @@ import Contact from "./pages/customer/Contact";
 import EventDetail from "./pages/customer/EventDetail";
 import BuyTickets from "./pages/customer/BuyTickets";
 import PurchaseConfirmation from "./pages/customer/PurchaseConfirmation";
+import TicketDownload from "./pages/customer/TicketDownload";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/event/:id" element={<EventDetail />} />
           <Route path="/event/:id/buy-tickets" element={<BuyTickets />} />
           <Route path="/event/:id/confirmation" element={<PurchaseConfirmation />} />
+          <Route path="/event/:id/ticket" element={<TicketDownload />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
           </Route>

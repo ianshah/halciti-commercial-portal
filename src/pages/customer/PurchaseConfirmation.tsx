@@ -186,7 +186,13 @@ export default function PurchaseConfirmation() {
             <Button variant="outline" className="flex-1" onClick={() => navigate(`/event/${id}`)}>
               View Event Details
             </Button>
-            <Button variant="outline" className="flex-1">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => navigate(`/event/${id}/ticket`, { 
+                state: { ...orderData, confirmationNumber } 
+              })}
+            >
               <Download className="h-4 w-4 mr-2" />
               Download Tickets
             </Button>
