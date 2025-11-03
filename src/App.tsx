@@ -12,6 +12,7 @@ import PurchaseConfirmation from "./pages/customer/PurchaseConfirmation";
 import TicketDownload from "./pages/customer/TicketDownload";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
+import CreateEvent from "./pages/admin/CreateEvent";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/event/:id/ticket" element={<TicketDownload />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
+            <Route path="create-event" element={<CreateEvent />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

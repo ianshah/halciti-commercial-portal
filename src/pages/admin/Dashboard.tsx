@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 const events = [
   {
@@ -52,6 +53,7 @@ const getStatusColor = (status: string) => {
 };
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [date, setDate] = useState<Date | undefined>(new Date());
 
   return (
@@ -96,7 +98,7 @@ export default function Dashboard() {
 
       <div>
         <h2 className="text-xl font-bold mb-4">Quick Actions</h2>
-        <Button>Create New Event</Button>
+        <Button onClick={() => navigate("/admin/create-event")}>Create New Event</Button>
       </div>
 
       <div>
