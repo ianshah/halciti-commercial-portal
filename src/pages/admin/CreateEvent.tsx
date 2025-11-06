@@ -3,7 +3,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, ArrowLeft } from "lucide-react";
+import { CalendarIcon, ArrowLeft, Upload, X } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -42,6 +43,7 @@ const eventSchema = z.object({
     .trim()
     .min(10, { message: "Description must be at least 10 characters" })
     .max(2000, { message: "Description must be less than 2000 characters" }),
+  banner: z.instanceof(File).optional().or(z.string().optional()),
   date: z.date({
     required_error: "Event date is required",
   }),
@@ -80,6 +82,7 @@ type EventFormData = z.infer<typeof eventSchema>;
 export default function CreateEvent() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -108,6 +111,23 @@ export default function CreateEvent() {
     
     // Navigate back to admin dashboard
     navigate("/admin");
+  };
+
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      form.setValue("banner", file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBannerPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeBanner = () => {
+    form.setValue("banner", undefined);
+    setBannerPreview(null);
   };
 
   return (
@@ -166,6 +186,65 @@ export default function CreateEvent() {
                     </FormControl>
                     <FormDescription>
                       Provide a detailed description of what attendees can expect
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="banner"
+                render={({ field: { value, onChange, ...field } }) => (
+                  <FormItem>
+                    <FormLabel>Event Banner/Poster</FormLabel>
+                    <FormControl>
+                      <div className="space-y-4">
+                        {!bannerPreview ? (
+                          <div className="border-2 border-dashed rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                            <Upload className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+                            <div className="space-y-2">
+                              <label htmlFor="banner-upload" className="cursor-pointer">
+                                <span className="text-sm font-medium text-primary hover:underline">
+                                  Click to upload
+                                </span>
+                                <span className="text-sm text-muted-foreground"> or drag and drop</span>
+                              </label>
+                              <p className="text-xs text-muted-foreground">
+                                PNG, JPG or WEBP (max. 5MB)
+                              </p>
+                            </div>
+                            <Input
+                              id="banner-upload"
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp"
+                              className="hidden"
+                              onChange={handleBannerChange}
+                              {...field}
+                            />
+                          </div>
+                        ) : (
+                          <div className="relative rounded-lg overflow-hidden border">
+                            <img
+                              src={bannerPreview}
+                              alt="Banner preview"
+                              className="w-full h-48 object-cover"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2"
+                              onClick={removeBanner}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Upload an eye-catching banner for your event
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
