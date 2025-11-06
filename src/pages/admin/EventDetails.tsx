@@ -13,29 +13,86 @@ import {
 } from "@/components/ui/table";
 
 // Mock data - replace with actual data fetching
-const eventDetails = {
-  id: "1",
-  name: "Halal Awareness Training",
-  description: "Comprehensive training on Halal certification and compliance standards.",
-  date: "August 5, 2025",
-  time: "9:00 AM - 5:00 PM",
-  location: "Kuala Lumpur Convention Centre",
-  venue: "Hall A",
-  category: "Training",
-  capacity: 200,
-  ticketPrice: 50,
-  vipTicketPrice: 100,
-  registrations: 150,
-  revenue: "RM10,000.00",
-  status: "Published",
-};
-
-const attendees = [
-  { id: 1, name: "Ahmad bin Abdullah", email: "ahmad@example.com", ticketType: "General", paymentStatus: "Paid", registrationDate: "July 1, 2025" },
-  { id: 2, name: "Fatimah binti Hassan", email: "fatimah@example.com", ticketType: "VIP", paymentStatus: "Paid", registrationDate: "July 2, 2025" },
-  { id: 3, name: "Muhammad bin Ali", email: "muhammad@example.com", ticketType: "General", paymentStatus: "Paid", registrationDate: "July 3, 2025" },
-  { id: 4, name: "Aisha binti Omar", email: "aisha@example.com", ticketType: "VIP", paymentStatus: "Pending", registrationDate: "July 4, 2025" },
+const eventsData = [
+  {
+    id: "1",
+    name: "Halal Talk",
+    description: "Engaging discussion on Halal practices and industry trends.",
+    date: "July 15, 2025",
+    time: "2:00 PM - 5:00 PM",
+    location: "Kuala Lumpur Convention Centre",
+    venue: "Hall B",
+    category: "Talk",
+    capacity: 150,
+    ticketPrice: 30,
+    vipTicketPrice: 60,
+    registrations: 100,
+    revenue: "RM5,000.00",
+    status: "Ended",
+  },
+  {
+    id: "2",
+    name: "Halal Awareness Training",
+    description: "Comprehensive training on Halal certification and compliance standards.",
+    date: "August 5, 2025",
+    time: "9:00 AM - 5:00 PM",
+    location: "Kuala Lumpur Convention Centre",
+    venue: "Hall A",
+    category: "Training",
+    capacity: 200,
+    ticketPrice: 50,
+    vipTicketPrice: 100,
+    registrations: 150,
+    revenue: "RM10,000.00",
+    status: "Published",
+  },
+  {
+    id: "3",
+    name: "Halal Talk",
+    description: "Interactive session on Halal food processing and certification.",
+    date: "September 20, 2025",
+    time: "10:00 AM - 1:00 PM",
+    location: "Putrajaya International Convention Centre",
+    venue: "Hall C",
+    category: "Talk",
+    capacity: 100,
+    ticketPrice: 25,
+    vipTicketPrice: 50,
+    registrations: 0,
+    revenue: "RM0.00",
+    status: "Cancelled",
+  },
+  {
+    id: "4",
+    name: "Halal Awareness Training",
+    description: "Advanced workshop on Halal compliance for food manufacturers.",
+    date: "September 20, 2025",
+    time: "9:00 AM - 6:00 PM",
+    location: "Kuala Lumpur Convention Centre",
+    venue: "Hall A",
+    category: "Training",
+    capacity: 180,
+    ticketPrice: 45,
+    vipTicketPrice: 90,
+    registrations: 0,
+    revenue: "RM0.00",
+    status: "Draft",
+  },
 ];
+
+const attendeesData: Record<string, any[]> = {
+  "1": [
+    { id: 1, name: "Ahmad bin Abdullah", email: "ahmad@example.com", ticketType: "General", paymentStatus: "Paid", registrationDate: "July 1, 2025" },
+    { id: 2, name: "Fatimah binti Hassan", email: "fatimah@example.com", ticketType: "VIP", paymentStatus: "Paid", registrationDate: "July 2, 2025" },
+  ],
+  "2": [
+    { id: 1, name: "Muhammad bin Ali", email: "muhammad@example.com", ticketType: "General", paymentStatus: "Paid", registrationDate: "July 3, 2025" },
+    { id: 2, name: "Aisha binti Omar", email: "aisha@example.com", ticketType: "VIP", paymentStatus: "Pending", registrationDate: "July 4, 2025" },
+    { id: 3, name: "Hassan bin Yusof", email: "hassan@example.com", ticketType: "General", paymentStatus: "Paid", registrationDate: "July 5, 2025" },
+  ],
+  "3": [],
+  "4": [],
+};
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -55,6 +112,9 @@ const getStatusColor = (status: string) => {
 export default function EventDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
+
+  const eventDetails = eventsData.find((event) => event.id === id) || eventsData[0];
+  const attendees = attendeesData[id || "1"] || [];
 
   return (
     <div className="flex-1 space-y-6 p-8">
