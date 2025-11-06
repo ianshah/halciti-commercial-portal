@@ -144,7 +144,13 @@ export default function Dashboard() {
                         </Badge>
                       </td>
                       <td className="px-4 py-3">
-                        <Button variant="ghost" size="sm">View Details</Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => navigate(`/admin/event/${index + 1}`)}
+                        >
+                          View Details
+                        </Button>
                       </td>
                     </tr>
                   ))}
