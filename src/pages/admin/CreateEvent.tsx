@@ -63,6 +63,11 @@ const eventSchema = z.object({
     role: z.string().min(1, { message: "Role is required" }),
     photo: z.instanceof(File).optional().or(z.string().optional()),
   })).optional(),
+  sponsors: z.array(z.object({
+    name: z.string().min(1, { message: "Sponsor name is required" }),
+    description: z.string().min(1, { message: "Description is required" }),
+    logo: z.instanceof(File).optional().or(z.string().optional()),
+  })).optional(),
   location: z.string()
     .trim()
     .min(3, { message: "Location must be at least 3 characters" })
@@ -99,6 +104,9 @@ export default function CreateEvent() {
   const [facilitators, setFacilitators] = useState([
     { name: "", role: "", photo: undefined, photoPreview: null as string | null }
   ]);
+  const [sponsors, setSponsors] = useState([
+    { name: "", description: "", logo: undefined, logoPreview: null as string | null }
+  ]);
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -109,6 +117,7 @@ export default function CreateEvent() {
       endTime: "17:00",
       schedule: [{ title: "", startTime: "09:00", endTime: "10:00" }],
       facilitators: [{ name: "", role: "", photo: undefined }],
+      sponsors: [{ name: "", description: "", logo: undefined }],
       location: "",
       venue: "",
       category: "",
@@ -213,6 +222,51 @@ export default function CreateEvent() {
     );
     setFacilitators(newFacilitators);
     form.setValue("facilitators", newFacilitators.map(f => ({ name: f.name, role: f.role, photo: f.photo })));
+  };
+
+  const addSponsor = () => {
+    const newSponsors = [...sponsors, { name: "", description: "", logo: undefined, logoPreview: null }];
+    setSponsors(newSponsors);
+    form.setValue("sponsors", newSponsors.map(s => ({ name: s.name, description: s.description, logo: s.logo })));
+  };
+
+  const removeSponsor = (index: number) => {
+    if (sponsors.length > 1) {
+      const newSponsors = sponsors.filter((_, i) => i !== index);
+      setSponsors(newSponsors);
+      form.setValue("sponsors", newSponsors.map(s => ({ name: s.name, description: s.description, logo: s.logo })));
+    }
+  };
+
+  const updateSponsor = (index: number, field: string, value: string) => {
+    const newSponsors = sponsors.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    );
+    setSponsors(newSponsors);
+    form.setValue("sponsors", newSponsors.map(s => ({ name: s.name, description: s.description, logo: s.logo })));
+  };
+
+  const handleSponsorLogoChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newSponsors = sponsors.map((item, i) => 
+          i === index ? { ...item, logo: file, logoPreview: reader.result as string } : item
+        );
+        setSponsors(newSponsors);
+        form.setValue("sponsors", newSponsors.map(s => ({ name: s.name, description: s.description, logo: s.logo })));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeSponsorLogo = (index: number) => {
+    const newSponsors = sponsors.map((item, i) => 
+      i === index ? { ...item, logo: undefined, logoPreview: null } : item
+    );
+    setSponsors(newSponsors);
+    form.setValue("sponsors", newSponsors.map(s => ({ name: s.name, description: s.description, logo: s.logo })));
   };
 
   return (
@@ -613,6 +667,103 @@ export default function CreateEvent() {
             </CardContent>
           </Card>
 
+          {/* Sponsors */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Sponsors</CardTitle>
+              <CardDescription>
+                Add sponsors and partners for your event
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {sponsors.map((sponsor, index) => (
+                <div key={index} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">Sponsor {index + 1}</h4>
+                    {sponsors.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeSponsor(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <FormLabel>Sponsor Name</FormLabel>
+                      <Input
+                        placeholder="Tech Corp Inc."
+                        value={sponsor.name}
+                        onChange={(e) => updateSponsor(index, "name", e.target.value)}
+                      />
+                    </div>
+                    
+                    <div>
+                      <FormLabel>Description</FormLabel>
+                      <Textarea
+                        placeholder="Gold Sponsor"
+                        value={sponsor.description}
+                        onChange={(e) => updateSponsor(index, "description", e.target.value)}
+                        className="min-h-20"
+                      />
+                    </div>
+
+                    <div>
+                      <FormLabel>Logo</FormLabel>
+                      {!sponsor.logoPreview ? (
+                        <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <label htmlFor={`sponsor-logo-${index}`} className="cursor-pointer">
+                            <span className="text-sm font-medium text-primary hover:underline">
+                              Upload logo
+                            </span>
+                          </label>
+                          <Input
+                            id={`sponsor-logo-${index}`}
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => handleSponsorLogoChange(index, e)}
+                          />
+                        </div>
+                      ) : (
+                        <div className="relative rounded-lg overflow-hidden border w-32 h-32">
+                          <img
+                            src={sponsor.logoPreview}
+                            alt="Sponsor logo preview"
+                            className="w-full h-full object-contain bg-muted p-2"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6"
+                            onClick={() => removeSponsorLogo(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addSponsor}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Sponsor
+              </Button>
+            </CardContent>
+          </Card>
 
           {/* Location */}
           <Card>
