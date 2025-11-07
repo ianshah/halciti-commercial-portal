@@ -58,6 +58,11 @@ const eventSchema = z.object({
     startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: "Invalid time format" }),
     endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: "Invalid time format" }),
   })).optional(),
+  facilitators: z.array(z.object({
+    name: z.string().min(1, { message: "Facilitator name is required" }),
+    role: z.string().min(1, { message: "Role is required" }),
+    photo: z.instanceof(File).optional().or(z.string().optional()),
+  })).optional(),
   location: z.string()
     .trim()
     .min(3, { message: "Location must be at least 3 characters" })
@@ -91,6 +96,9 @@ export default function CreateEvent() {
   const [scheduleItems, setScheduleItems] = useState([
     { title: "", startTime: "09:00", endTime: "10:00" }
   ]);
+  const [facilitators, setFacilitators] = useState([
+    { name: "", role: "", photo: undefined, photoPreview: null as string | null }
+  ]);
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -100,6 +108,7 @@ export default function CreateEvent() {
       startTime: "09:00",
       endTime: "17:00",
       schedule: [{ title: "", startTime: "09:00", endTime: "10:00" }],
+      facilitators: [{ name: "", role: "", photo: undefined }],
       location: "",
       venue: "",
       category: "",
@@ -159,6 +168,51 @@ export default function CreateEvent() {
     );
     setScheduleItems(newItems);
     form.setValue("schedule", newItems);
+  };
+
+  const addFacilitator = () => {
+    const newFacilitators = [...facilitators, { name: "", role: "", photo: undefined, photoPreview: null }];
+    setFacilitators(newFacilitators);
+    form.setValue("facilitators", newFacilitators.map(f => ({ name: f.name, role: f.role, photo: f.photo })));
+  };
+
+  const removeFacilitator = (index: number) => {
+    if (facilitators.length > 1) {
+      const newFacilitators = facilitators.filter((_, i) => i !== index);
+      setFacilitators(newFacilitators);
+      form.setValue("facilitators", newFacilitators.map(f => ({ name: f.name, role: f.role, photo: f.photo })));
+    }
+  };
+
+  const updateFacilitator = (index: number, field: string, value: string) => {
+    const newFacilitators = facilitators.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    );
+    setFacilitators(newFacilitators);
+    form.setValue("facilitators", newFacilitators.map(f => ({ name: f.name, role: f.role, photo: f.photo })));
+  };
+
+  const handleFacilitatorPhotoChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const newFacilitators = facilitators.map((item, i) => 
+          i === index ? { ...item, photo: file, photoPreview: reader.result as string } : item
+        );
+        setFacilitators(newFacilitators);
+        form.setValue("facilitators", newFacilitators.map(f => ({ name: f.name, role: f.role, photo: f.photo })));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeFacilitatorPhoto = (index: number) => {
+    const newFacilitators = facilitators.map((item, i) => 
+      i === index ? { ...item, photo: undefined, photoPreview: null } : item
+    );
+    setFacilitators(newFacilitators);
+    form.setValue("facilitators", newFacilitators.map(f => ({ name: f.name, role: f.role, photo: f.photo })));
   };
 
   return (
@@ -460,6 +514,105 @@ export default function CreateEvent() {
               </Button>
             </CardContent>
           </Card>
+
+          {/* Facilitators/Speakers */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Facilitators / Speakers</CardTitle>
+              <CardDescription>
+                Add speakers and facilitators for your event
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {facilitators.map((facilitator, index) => (
+                <div key={index} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">Facilitator {index + 1}</h4>
+                    {facilitators.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeFacilitator(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="grid md:grid-cols-2 gap-3">
+                      <div>
+                        <FormLabel>Name</FormLabel>
+                        <Input
+                          placeholder="Dr. Sarah Johnson"
+                          value={facilitator.name}
+                          onChange={(e) => updateFacilitator(index, "name", e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <FormLabel>Role / Title</FormLabel>
+                        <Input
+                          placeholder="Keynote Speaker"
+                          value={facilitator.role}
+                          onChange={(e) => updateFacilitator(index, "role", e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <FormLabel>Photo</FormLabel>
+                      {!facilitator.photoPreview ? (
+                        <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                          <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                          <label htmlFor={`facilitator-photo-${index}`} className="cursor-pointer">
+                            <span className="text-sm font-medium text-primary hover:underline">
+                              Upload photo
+                            </span>
+                          </label>
+                          <Input
+                            id={`facilitator-photo-${index}`}
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => handleFacilitatorPhotoChange(index, e)}
+                          />
+                        </div>
+                      ) : (
+                        <div className="relative rounded-lg overflow-hidden border w-32 h-32">
+                          <img
+                            src={facilitator.photoPreview}
+                            alt="Facilitator preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6"
+                            onClick={() => removeFacilitatorPhoto(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addFacilitator}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Facilitator
+              </Button>
+            </CardContent>
+          </Card>
+
 
           {/* Location */}
           <Card>
