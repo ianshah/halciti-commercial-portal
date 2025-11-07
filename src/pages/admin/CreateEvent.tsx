@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { CalendarIcon, ArrowLeft, Upload, X } from "lucide-react";
+import { CalendarIcon, ArrowLeft, Upload, X, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +53,11 @@ const eventSchema = z.object({
   endTime: z.string()
     .trim()
     .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: "Invalid time format (HH:MM)" }),
+  schedule: z.array(z.object({
+    title: z.string().min(1, { message: "Session title is required" }),
+    startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: "Invalid time format" }),
+    endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, { message: "Invalid time format" }),
+  })).optional(),
   location: z.string()
     .trim()
     .min(3, { message: "Location must be at least 3 characters" })
@@ -83,6 +88,9 @@ export default function CreateEvent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [scheduleItems, setScheduleItems] = useState([
+    { title: "", startTime: "09:00", endTime: "10:00" }
+  ]);
 
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
@@ -91,6 +99,7 @@ export default function CreateEvent() {
       description: "",
       startTime: "09:00",
       endTime: "17:00",
+      schedule: [{ title: "", startTime: "09:00", endTime: "10:00" }],
       location: "",
       venue: "",
       category: "",
@@ -128,6 +137,28 @@ export default function CreateEvent() {
   const removeBanner = () => {
     form.setValue("banner", undefined);
     setBannerPreview(null);
+  };
+
+  const addScheduleItem = () => {
+    const newItems = [...scheduleItems, { title: "", startTime: "09:00", endTime: "10:00" }];
+    setScheduleItems(newItems);
+    form.setValue("schedule", newItems);
+  };
+
+  const removeScheduleItem = (index: number) => {
+    if (scheduleItems.length > 1) {
+      const newItems = scheduleItems.filter((_, i) => i !== index);
+      setScheduleItems(newItems);
+      form.setValue("schedule", newItems);
+    }
+  };
+
+  const updateScheduleItem = (index: number, field: string, value: string) => {
+    const newItems = scheduleItems.map((item, i) => 
+      i === index ? { ...item, [field]: value } : item
+    );
+    setScheduleItems(newItems);
+    form.setValue("schedule", newItems);
   };
 
   return (
@@ -358,6 +389,75 @@ export default function CreateEvent() {
                   )}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Schedule Sessions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Event Schedule</CardTitle>
+              <CardDescription>
+                Add multiple sessions to your event schedule
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {scheduleItems.map((item, index) => (
+                <div key={index} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">Session {index + 1}</h4>
+                    {scheduleItems.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeScheduleItem(index)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <FormLabel>Session Title</FormLabel>
+                      <Input
+                        placeholder="Registration & Welcome"
+                        value={item.title}
+                        onChange={(e) => updateScheduleItem(index, "title", e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <FormLabel>Start Time</FormLabel>
+                        <Input
+                          type="time"
+                          value={item.startTime}
+                          onChange={(e) => updateScheduleItem(index, "startTime", e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <FormLabel>End Time</FormLabel>
+                        <Input
+                          type="time"
+                          value={item.endTime}
+                          onChange={(e) => updateScheduleItem(index, "endTime", e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addScheduleItem}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Schedule Session
+              </Button>
             </CardContent>
           </Card>
 
